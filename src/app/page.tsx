@@ -19,19 +19,17 @@ export default function Home() {
   const [error, setError] = useState('')
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const formRef = useRef(null)
   const otpRef = useRef<HTMLInputElement | null>(null)
 
   const onsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
-    const form = formRef.current
-    if (!form) {
-      return
-    }
-
-    const formData = new FormData(form)
+    const formData = new FormData(formRef.current!)
     const phoneNumber = formData.get('phone-number')
     const country = selectedCountry?.cca2
 
@@ -45,14 +43,22 @@ export default function Home() {
 
     if (!res.ok) {
       setError('Failed to send OTP')
+      setIsLoading(false)
       return
     }
 
     const data = await res.json()
 
     if (data) {
+      const controller = new AbortController()
+      setTimeout(() => controller.abort(), 15000)
       try {
-        const otp = await navigator.credentials.get({ otp: { transport: ['sms'] } })
+        const otp = await navigator.credentials.get({
+          otp: {
+            transport: ['sms']
+          },
+          signal: controller.signal
+        })
         if (otp) {
           setOtp(JSON.stringify(otp))
           if (otpRef?.current) {
@@ -63,6 +69,7 @@ export default function Home() {
         setError('Failed to get OTP')
       }
     }
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -110,18 +117,21 @@ export default function Home() {
             name="phone-number"
             id="phone-number"
             placeholder="Phone number"
-            inputMode="numeric"
-            pattern="[0-9]*"
             required
+            autoComplete="mobile tel-national"
           />
-          <button type="submit" className="bg-green-400 text-green-950 border-none font-semibold">
-            Submit
+          <button
+            type="submit"
+            className="bg-green-400 text-green-950 border-none font-semibold disabled:text-green-900 disabled:bg-green-600"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Loading...' : 'Submit'}
           </button>
         </form>
 
-        {error && <p className="text-red-400 pt-10">{error}</p>}
+        {error && <p className="text-red-400 text-center">{error}</p>}
 
-        <input ref={otpRef} type="text" name="otp" placeholder="OTP" className="mt-6" />
+        <input ref={otpRef} type="text" name="otp" placeholder="OTP" className="mt-4" />
 
         {otp && <p>Your OTP: {otp}</p>}
       </div>
