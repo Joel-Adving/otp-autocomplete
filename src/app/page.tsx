@@ -15,12 +15,12 @@ declare global {
 }
 
 export default function Home() {
-  const formRef = useRef(null)
-  const otpRef = useRef<HTMLInputElement | null>(null)
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
+  const formRef = useRef(null)
+  const otpRef = useRef<HTMLInputElement | null>(null)
 
   const onsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
