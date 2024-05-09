@@ -21,15 +21,15 @@ export default function Home() {
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
   const [isValidCode, setIsValidCode] = useState(false)
-  const [code, setCode] = useState('')
   const [otpInput, setOtpInput] = useState('')
+  const [code, setCode] = useState('')
 
   const formRef = useRef(null)
 
   const onsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError('')
     setIsLoading(true)
+    setError('')
 
     const formData = new FormData(formRef.current!)
     const phoneNumber = formData.get('phone-number')
@@ -65,7 +65,7 @@ export default function Home() {
           })
           if (otp?.code) {
             setOtpInput(otp.code)
-            if (data.code === otp.code) {
+            if (+data.code === +otp.code) {
               setIsValidCode(true)
             }
           }
@@ -94,7 +94,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="p-4 flex flex-col gap-6 h-screen">
+    <div className="p-4 flex flex-col gap-6 h-dvh">
       <div className="m-auto flex flex-col gap-4">
         <form ref={formRef} onSubmit={onsSubmit} className="flex gap-3 flex-col">
           <div className="flex gap-3">
