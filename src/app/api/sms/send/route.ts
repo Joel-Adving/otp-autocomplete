@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const number = body?.number
   const regionCode = body?.country
-  const parsedNummer = parsePhoneNumber(number, { regionCode: regionCode })
+  const parsedNummer = parsePhoneNumber(number, { regionCode })
 
   if (!parsedNummer.valid || !parsedNummer.possible) {
     return Response.json({ error: 'Invalid phone number' }, { status: 400 })
