@@ -55,7 +55,6 @@ export default function Home() {
         const otp = await navigator.credentials.get({ otp: { transport: ['sms'] } })
         if (otp) {
           setOtp(JSON.stringify(otp))
-          console.log('otp: ', otp.code)
           if (otpRef?.current) {
             otpRef.current.value = otp.code
           }
@@ -122,17 +121,7 @@ export default function Home() {
 
         {error && <p className="text-red-400 pt-10">{error}</p>}
 
-        <input
-          ref={otpRef}
-          type="text"
-          name="otp"
-          placeholder="OTP"
-          autoComplete="one-time-code"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={4}
-          className="mt-6"
-        />
+        <input ref={otpRef} type="text" name="otp" placeholder="OTP" className="mt-6" />
 
         {otp && <p>Your OTP: {otp}</p>}
       </div>

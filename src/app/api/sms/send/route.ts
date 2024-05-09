@@ -2,10 +2,8 @@ import { type NextRequest } from 'next/server'
 import { parsePhoneNumber } from 'awesome-phonenumber'
 import { Twilio } from 'twilio'
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID
-const authToken = process.env.TWILIO_AUTH_TOKEN
-
-const client = new Twilio(accountSid, authToken)
+const client = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+const origin = process.env.ORIGIN
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -18,12 +16,12 @@ export async function POST(request: NextRequest) {
   }
 
   const code = Math.floor(1000 + Math.random() * 9000)
-  const message = `${code} is your verification code \n\n @vercel.app #${code} @otp-zeta.vercel`
+  const message = `${code} is your verification code \n\n @${origin} #${code}`
 
   try {
     const res = await client.messages.create({
       body: message,
-      from: '+12177637234',
+      from: process.env.SENDER_PHONE_NUMBER,
       to: parsedNummer.number.e164
     })
     console.log(res)
