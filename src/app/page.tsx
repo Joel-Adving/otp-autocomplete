@@ -33,7 +33,7 @@ export default function Home() {
     const phoneNumber = formData.get('phone-number')
     const country = selectedCountry?.cca2
 
-    const res = await fetch(process.env.PUBLIC_NEXT_PATH + '/api/sms/send', {
+    const res = await fetch(process.env.NEXT_PUBLIC_PATH + '/api/sms/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
