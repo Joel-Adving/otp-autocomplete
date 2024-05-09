@@ -17,9 +17,9 @@ declare global {
 export default function Home() {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
 
   const formRef = useRef(null)
   const otpRef = useRef<HTMLInputElement | null>(null)
@@ -33,7 +33,7 @@ export default function Home() {
     const phoneNumber = formData.get('phone-number')
     const country = selectedCountry?.cca2
 
-    const res = await fetch('/api/sms/send', {
+    const res = await fetch(process.env.PUBLIC_NEXT_PATH + '/api/sms/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -128,11 +128,8 @@ export default function Home() {
             {isLoading ? 'Loading...' : 'Submit'}
           </button>
         </form>
-
         {error && <p className="text-red-400 text-center">{error}</p>}
-
         <input ref={otpRef} type="text" name="otp" placeholder="OTP" className="mt-4" />
-
         {otp && <p>Your OTP: {otp}</p>}
       </div>
     </div>

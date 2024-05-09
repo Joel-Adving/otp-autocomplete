@@ -3,7 +3,7 @@ import { parsePhoneNumber } from 'awesome-phonenumber'
 import { Twilio } from 'twilio'
 
 const client = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-const origin = process.env.ORIGIN
+const origin = process.env.PUBLIC_NEXT_PATH?.replace('https://', '')
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
