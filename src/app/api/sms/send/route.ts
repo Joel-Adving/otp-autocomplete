@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       to: parsedNummer.number.e164
     })
     console.log(res)
-    return Response.json({ success: 'Message sent' })
+    return Response.json({ success: 'Message sent', code })
   } catch (error) {
     console.error(error)
     return Response.json({ error: 'Failed to send message' }, { status: 500 })

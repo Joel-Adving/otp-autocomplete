@@ -1,6 +1,7 @@
 'use client'
 import Image from 'next/image'
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { UAParser } from 'ua-parser-js'
 
 declare global {
   interface CredentialRequestOptions {
@@ -15,14 +16,15 @@ declare global {
 }
 
 export default function Home() {
-  const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [countries, setCountries] = useState([])
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
+  const [isValidCode, setIsValidCode] = useState(false)
+  const [code, setCode] = useState('')
+  const [otpInput, setOtpInput] = useState('')
 
   const formRef = useRef(null)
-  const otpRef = useRef<HTMLInputElement | null>(null)
 
   const onsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -48,28 +50,37 @@ export default function Home() {
     }
 
     const data = await res.json()
-
     if (data) {
-      const controller = new AbortController()
-      setTimeout(() => controller.abort(), 15000)
-      try {
-        const otp = await navigator.credentials.get({
-          otp: {
-            transport: ['sms']
-          },
-          signal: controller.signal
-        })
-        if (otp) {
-          setOtp(JSON.stringify(otp))
-          if (otpRef?.current) {
-            otpRef.current.value = otp.code
+      setCode(data.code)
+      // check that we are not on a desktop OS
+      if (!['windows', 'mac', 'linux'].includes(new UAParser().getOS().name?.toLocaleLowerCase() ?? '')) {
+        const controller = new AbortController()
+        setTimeout(() => controller.abort(), 15000) // timout after 15 seconds
+        try {
+          const otp = await navigator.credentials.get({
+            otp: {
+              transport: ['sms']
+            },
+            signal: controller.signal
+          })
+          if (otp?.code) {
+            setOtpInput(otp.code)
+            if (data.code === otp.code) {
+              setIsValidCode(true)
+            }
           }
+        } catch (_err) {
+          setError('Failed to autofill OTP')
         }
-      } catch (error) {
-        setError('Failed to get OTP')
       }
     }
     setIsLoading(false)
+  }
+
+  const handleOtpInput = (e: FormEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value
+    setOtpInput(value)
+    setIsValidCode(+value === +code)
   }
 
   useEffect(() => {
@@ -129,8 +140,28 @@ export default function Home() {
           </button>
         </form>
         {error && <p className="text-red-400 text-center">{error}</p>}
-        <input ref={otpRef} type="text" name="otp" placeholder="OTP" className="mt-4" />
-        {otp && <p>Your OTP: {otp}</p>}
+        <input
+          value={otpInput}
+          type="text"
+          name="otp"
+          placeholder="OTP"
+          maxLength={4}
+          className={`mt-4
+           ${isValidCode && 'border-green-400 text-green-400'}
+           ${otpInput.length === 4 && !isValidCode && 'border-red-400 text-red-400'}`}
+          onChange={handleOtpInput}
+        />
+        <div className="h-5">
+          {otpInput.length === 4 && (
+            <>
+              {isValidCode ? (
+                <p className="text-green-400 text-center">OTP is valid</p>
+              ) : (
+                <p className="text-red-400 text-center">OTP is invalid</p>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
