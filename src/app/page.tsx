@@ -77,60 +77,65 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="p-4 flex flex-col gap-6">
-      <form ref={formRef} onSubmit={onsSubmit} className="flex gap-3">
-        <div className="flex gap-3">
-          {selectedCountry && (
-            <Image
-              src={selectedCountry?.flags?.png ?? ''}
-              alt={selectedCountry?.flags?.alt ?? ''}
-              width={50}
-              height={50}
-            />
-          )}
-          {countries && (
-            <select
-              name="country"
-              id="country"
-              className="w-56"
-              value={selectedCountry?.cca2}
-              onChange={(e) => setSelectedCountry(countries.find((c: any) => c.cca2 === e.target.value))}
-            >
-              {countries?.map((country: any) => (
-                <option key={country.cca2} value={country.cca2} className="bg-black">
-                  {country.name.common}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+    <div className="p-4 flex flex-col gap-6 h-screen">
+      <div className="m-auto flex flex-col gap-4">
+        <form ref={formRef} onSubmit={onsSubmit} className="flex gap-3 flex-col">
+          <div className="flex gap-3">
+            {countries && (
+              <select
+                name="country"
+                id="country"
+                className="w-56"
+                value={selectedCountry?.cca2}
+                onChange={(e) => setSelectedCountry(countries.find((c: any) => c.cca2 === e.target.value))}
+              >
+                {countries?.map((country: any) => (
+                  <option key={country.cca2} value={country.cca2} className="bg-black">
+                    {country.name.common}
+                  </option>
+                ))}
+              </select>
+            )}
+            {selectedCountry && (
+              <Image
+                src={selectedCountry?.flags?.png ?? ''}
+                alt={selectedCountry?.flags?.alt ?? ''}
+                width={56}
+                height={56}
+                className="rounded aspect-[2:3]"
+              />
+            )}
+          </div>
+          <input
+            type="tel"
+            name="phone-number"
+            id="phone-number"
+            placeholder="Phone number"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            required
+          />
+          <button type="submit" className="bg-green-400 text-green-950 border-none font-semibold">
+            Submit
+          </button>
+        </form>
+
+        {error && <p className="text-red-400 pt-10">{error}</p>}
+
         <input
-          type="tel"
-          name="phone-number"
-          id="phone-number"
-          placeholder="Phone number"
+          ref={otpRef}
+          type="text"
+          name="otp"
+          placeholder="OTP"
+          autoComplete="one-time-code"
           inputMode="numeric"
           pattern="[0-9]*"
-          required
+          maxLength={4}
+          className="mt-6"
         />
-        <button type="submit">Send me my OTP</button>
-      </form>
 
-      {error && <p className="text-red-400 pt-10">{error}</p>}
-
-      <input
-        ref={otpRef}
-        type="text"
-        name="otp"
-        placeholder="OTP"
-        autoComplete="one-time-code"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        maxLength={4}
-        className="w-fit"
-      />
-
-      {otp && <p>Your OTP: {otp}</p>}
+        {otp && <p>Your OTP: {otp}</p>}
+      </div>
     </div>
   )
 }
