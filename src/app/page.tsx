@@ -1,5 +1,6 @@
 'use client'
-import { FormEvent, useRef, useState } from 'react'
+import Image from 'next/image'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 
 declare global {
   interface CredentialRequestOptions {
@@ -18,47 +19,93 @@ export default function Home() {
   const otpRef = useRef<HTMLInputElement | null>(null)
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
+  const [countries, setCountries] = useState([])
+  const [selectedCountry, setSelectedCountry] = useState<any>(null)
 
   const onsSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
-    console.log('submitting form...')
-
     const form = formRef.current
     if (!form) {
-      setError('Form not found')
-      return console.error('Form not found')
+      return
     }
 
     const formData = new FormData(form)
     const phoneNumber = formData.get('phone-number')
+    const country = selectedCountry?.cca2
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const res = await fetch('/api/sms/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ number: phoneNumber, country })
+    })
 
-    console.log('getting otp...')
+    if (!res.ok) {
+      setError('Failed to send OTP')
+      return
+    }
 
-    try {
-      const otp = await navigator.credentials.get({ otp: { transport: ['sms'] } })
+    const data = await res.json()
 
-      if (otp) {
-        setOtp(JSON.stringify(otp))
-        console.log('otp: ', otp.code)
-        if (otpRef?.current) {
-          otpRef.current.value = otp.code
+    if (data) {
+      try {
+        const otp = await navigator.credentials.get({ otp: { transport: ['sms'] } })
+        if (otp) {
+          setOtp(JSON.stringify(otp))
+          console.log('otp: ', otp.code)
+          if (otpRef?.current) {
+            otpRef.current.value = otp.code
+          }
         }
+      } catch (error) {
+        setError('Failed to get OTP')
       }
-    } catch (error) {
-      console.log(error)
-      setError(JSON.stringify(error))
     }
   }
+
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all')
+      .then((res) => res.json())
+      .then((data) => {
+        setCountries(data.sort((a: any, b: any) => a.name.common.localeCompare(b.name.common)))
+        const country = navigator.language.split('-')[1].toUpperCase()
+        setSelectedCountry(data.find((c: any) => c.cca2 === country))
+      })
+  }, [])
 
   return (
     <div className="p-4 flex flex-col gap-6">
       <form ref={formRef} onSubmit={onsSubmit} className="flex gap-3">
+        <div className="flex gap-3">
+          {selectedCountry && (
+            <Image
+              src={selectedCountry?.flags?.png ?? ''}
+              alt={selectedCountry?.flags?.alt ?? ''}
+              width={50}
+              height={50}
+            />
+          )}
+          {countries && (
+            <select
+              name="country"
+              id="country"
+              className="w-56"
+              value={selectedCountry?.cca2}
+              onChange={(e) => setSelectedCountry(countries.find((c: any) => c.cca2 === e.target.value))}
+            >
+              {countries?.map((country: any) => (
+                <option key={country.cca2} value={country.cca2} className="bg-black">
+                  {country.name.common}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         <input
-          type="number"
+          type="tel"
           name="phone-number"
           id="phone-number"
           placeholder="Phone number"
@@ -66,8 +113,10 @@ export default function Home() {
           pattern="[0-9]*"
           required
         />
-        <button type="submit">submit</button>
+        <button type="submit">Send me my OTP</button>
       </form>
+
+      {error && <p className="text-red-400 pt-10">{error}</p>}
 
       <input
         ref={otpRef}
@@ -81,9 +130,7 @@ export default function Home() {
         className="w-fit"
       />
 
-      <p>OTP: {otp}</p>
-
-      {error && <p className="text-red-400 pt-10">{error}</p>}
+      {otp && <p>Your OTP: {otp}</p>}
     </div>
   )
 }
